@@ -205,17 +205,8 @@ def main(args):
 
                 # -- unsupervised imgs
                 uimgs = [u.to(device, non_blocking=True) for u in udata[0]] + [u.to(device, non_blocking=True) for u in udata[1]]
-                print('len uimgs:', len(uimgs))
-                print('uimgs[0] shape:', uimgs[0].shape)
-                # ulabels = udata[2].to(device, non_blocking=True)
+                # print('uimgs[0] shape:', uimgs[0].shape)
                 
-                # # -- supervised imgs
-                # global iter_supervised
-                # try:
-                #     sdata = next(iter_supervised)
-                # except Exception:
-                #     iter_supervised = iter(sup_loader)
-                #     sdata = next(iter_supervised)
                 iter_supervised = iter(sup_loader)
 
                 try:
@@ -224,14 +215,11 @@ def main(args):
                     print('Exception: Empty supervised dataloader')
                 finally:
                     slabels = sdata[1].to(device, non_blocking=True).repeat(args.supervised_views)
-                    print(f'slabels.shape: {slabels.shape}')
-                    print(f'min label: {min(slabels)}')
-                    print(f'max label: {max(slabels)}')
+                    # print(f'slabels.shape: {slabels.shape}')
                     print(slabels)
                     plabels = torch.cat([labels_matrix for _ in range(args.supervised_views)])   
                     simgs = [s.to(device, non_blocking=True) for s in sdata[0]]
-                    print('lens of simgs:', len(simgs))
-                    print('simgs shape:', simgs[0].shape)
+                    # print('simgs shape:', simgs[0].shape)
 
                 # -- concatenate supervised imgs and unsupervised imgs
                 imgs = simgs + uimgs
@@ -239,7 +227,6 @@ def main(args):
 
                 with torch.cuda.amp.autocast(enabled=args.use_fp16):
                     optimizer.zero_grad()
-
                     # --
                     # h: representations of 'imgs' before head
                     # z: representations of 'imgs' after head
@@ -299,8 +286,6 @@ def main(args):
                         # Step 4. compute online eval loss
                         # slogits = l[:num_support_mix,:num_seen_classes]
                         slogits = l[:num_support_mix]
-                        print('l.shape:', l.shape)
-                        print('slogits.shape:', slogits.shape)
                         # # # Change the targets to onehot label for mix up
                         # online_eval_loss = cross_entropy_with_logits(slogits, olabels)
                         
@@ -326,18 +311,8 @@ def main(args):
                             # Distillation on pseudo labels
                             # plabels for distillation with pre labeled data
                             pre_plabels = torch.cat([pre_labels_matrix for _ in range(args.supervised_views)])
-                            print('pre_labels_matrix shape:', pre_labels_matrix.shape)
-                            print('pre_plabels shape:', pre_plabels.shape)
-                            print('args.supervised_view:', args.supervised_views)
                             cur_anchor_supports = z[:num_support_mix][pre_mask]
-                            print('HERE')
-                            print('cur_anchor_supports shape:', cur_anchor_supports.shape)
-                            print('num_support_mix:', num_support_mix)
-                            print('pre_mask len:', len(pre_mask))
-                            print('pre_classes:', pre_classes)
-                            print('HERE')
                             cur_anchor_views = z[num_support_mix:]
-                            print('cur_anchor_views shape:', cur_anchor_views.shape)
                             pre_anchor_supports = pre_z[:num_support_mix][pre_mask]
                             pre_anchor_views = pre_z[num_support_mix:]
                             pre_target_views = pre_z[num_support_mix:].detach()
@@ -374,8 +349,6 @@ def main(args):
         exec_eval(encoder=encoder, test_stream=benchmark.test_stream, transforms=transforms, tr_exp_idx=tr_exp_idx,
                   val_stream=benchmark.valid_stream, device=device, log_folder=log_folder)
         
-        
-    
 
 
 if __name__ == '__main__':
