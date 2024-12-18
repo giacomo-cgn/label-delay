@@ -216,7 +216,6 @@ def main(args):
                 finally:
                     slabels = sdata[1].to(device, non_blocking=True).repeat(args.supervised_views)
                     # print(f'slabels.shape: {slabels.shape}')
-                    print(slabels)
                     plabels = torch.cat([labels_matrix for _ in range(args.supervised_views)])   
                     simgs = [s.to(device, non_blocking=True) for s in sdata[0]]
                     # print('simgs shape:', simgs[0].shape)
