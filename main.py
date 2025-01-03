@@ -83,14 +83,6 @@ def main(args):
                               unsup_anticipate_ratio=args.unsup_anticipate_ratio, drop_last_exp=args.drop_last_exp
                             )
     
-    classes_dict = {}
-    max_idx = -1
-    for classes in benchmark.exp_classes_list:
-        for c in classes:
-            if c not in classes_dict:
-               max_idx += 1
-               classes_dict[c] = max_idx
-        
 
     # Initialize model
     encoder = init_model(
@@ -124,7 +116,6 @@ def main(args):
     buffer = ClassBalancedBuffer(args.buffer_size)
     num_seen_classes = 0
     seen_classes = []
-    converted_seen_classes = []
 
     for tr_exp_idx, (sup_exp, unsup_exp) in enumerate(zip(benchmark.supervised_tr_stream, benchmark.unsupervised_tr_stream)):
         print(f'###### Starting Task {tr_exp_idx} ######')
@@ -133,11 +124,7 @@ def main(args):
         seen_classes += cur_classes
         num_cur_classes = len(cur_classes)
         num_pre_classes = len(pre_classes)
-        num_seen_classes = len(seen_classes)
-
-        converted_pre_classes = converted_seen_classes
-        converted_cur_classes = [classes_dict[c] for c in cur_classes]
-        converted_seen_classes += converted_cur_classes
+        num_seen_classes = len(seen_classes) 
 
         if buffer.__len__ == 0:
             num_classes_cl = num_cur_classes
@@ -227,9 +214,8 @@ def main(args):
                 except:
                     print('Exception: Empty supervised dataloader')
                 finally:
-                    slabels = sdata[1]
-                    # Convert slabels using classes_dict
-                    slabels = torch.tensor([classes_dict[i.item()] for i in slabels]).to(device, non_blocking=True).repeat(args.supervised_views)
+                    slabels = sdata[1].to(device, non_blocking=True).repeat(args.supervised_views)
+                    # print(f'slabels.shape: {slabels.shape}')
                     plabels = torch.cat([labels_matrix for _ in range(args.supervised_views)])   
                     simgs = [s.to(device, non_blocking=True) for s in sdata[0]]
                     # print('simgs shape:', simgs[0].shape)
@@ -272,9 +258,9 @@ def main(args):
                         num_u_data_mix =  args.unsup_mb_size 
                         # --
                         if mask:
-                            labels_mask = [label in converted_cur_classes for label in slabels]
+                            labels_mask = [label in cur_classes for label in slabels]
                         else:
-                            labels_mask = [label in converted_seen_classes for label in slabels]
+                            labels_mask = [label in seen_classes for label in slabels]
 
                         plabels_masked= plabels
                         anchor_supports = z[:num_support_mix][labels_mask]
@@ -297,8 +283,8 @@ def main(args):
                             mask=labels_mask)
 
                         # Step 4. compute online eval loss
-                        slogits = l[:num_support_mix,:num_seen_classes]
-                        # slogits = l[:num_support_mix]
+                        # slogits = l[:num_support_mix,:num_seen_classes]
+                        slogits = l[:num_support_mix]
                         # # # Change the targets to onehot label for mix up
                         # online_eval_loss = cross_entropy_with_logits(slogits, olabels)
                         
@@ -316,7 +302,7 @@ def main(args):
                             if buffer.__len__ == 0:
                                 pre_mask = [True for label in slabels]
                             else:
-                                pre_mask = [label in converted_pre_classes for label in slabels]
+                                pre_mask = [label in pre_classes for label in slabels]
                             
                             # Distillation on features
                             dist_loss = mse_loss(h_proj, pre_h)
@@ -360,7 +346,7 @@ def main(args):
 
         # Eval
         exec_eval(encoder=encoder, test_stream=benchmark.test_stream, transforms=transforms, tr_exp_idx=tr_exp_idx,
-                  val_stream=benchmark.valid_stream, device=device, log_folder=log_folder, classes_dict=classes_dict)
+                  val_stream=benchmark.valid_stream, device=device, log_folder=log_folder)
         
 
 

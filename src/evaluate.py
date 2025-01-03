@@ -8,12 +8,11 @@ from torch.utils.data import DataLoader
 from .data import SupervisedDataset
 
 @torch.no_grad()
-def evaluate(encoder, eval_loader, device, classes_dict):
+def evaluate(encoder, eval_loader, device):
     encoder.eval()
     preds, labels = [], []
 
     for x, y in tqdm(eval_loader, desc='Eval', leave=False):
-        y = torch.tensor([classes_dict[i.item()] for i in y])
         x = x[0].to(device)
         y = y.to(device)
 
@@ -29,13 +28,13 @@ def evaluate(encoder, eval_loader, device, classes_dict):
 
     return acc*100
 
-def exec_eval(encoder, test_stream, transforms, tr_exp_idx, classes_dict, val_stream=None, device='cpu', log_folder='./log'):
+def exec_eval(encoder, test_stream, transforms, tr_exp_idx, val_stream=None, device='cpu', log_folder='./log'):
     test_accs = []
     for test_exp_idx, test_exp in enumerate(test_stream):
         test_dataset = SupervisedDataset(test_exp, transforms=transforms, num_views=1)
         test_loader = DataLoader(test_dataset, batch_size=256, num_workers=8, pin_memory=True)
 
-        test_acc = evaluate(encoder, test_loader, device, classes_dict)
+        test_acc = evaluate(encoder, test_loader, device)
         test_accs.append(test_acc)
     avg_test_acc = sum(test_accs)/len(test_accs)
     print(f'Avg Test acc at tr_exp {tr_exp_idx}: {avg_test_acc}')
@@ -46,7 +45,7 @@ def exec_eval(encoder, test_stream, transforms, tr_exp_idx, classes_dict, val_st
             val_dataset = SupervisedDataset(val_exp, transforms=transforms, num_views=1)
             val_loader = DataLoader(val_dataset, batch_size=256, num_workers=8, pin_memory=True)
 
-            val_acc = evaluate(encoder, val_loader, device, classes_dict)
+            val_acc = evaluate(encoder, val_loader, device)
             val_accs.append(val_acc)
         avg_val_acc = sum(val_accs)/len(val_accs)
         print(f'Avg Val acc at tr_exp {tr_exp_idx}: {avg_val_acc}')
