@@ -201,20 +201,20 @@ def main(args):
             print(f'Doing epoch {epoch}')
 
             # Iterate over dataloaders
+            iter_supervised = iter(sup_loader)
             for udata in tqdm(unsup_loader):               
 
                 # -- unsupervised imgs
                 uimgs = [u.to(device, non_blocking=True) for u in udata[0]] + [u.to(device, non_blocking=True) for u in udata[1]]
                 # print('uimgs[0] shape:', uimgs[0].shape)
                 
-                iter_supervised = iter(sup_loader)
-
                 try:
                     sdata = next(iter_supervised)
                 except:
                     print('Exception: Empty supervised dataloader')
                 finally:
                     slabels = sdata[1].to(device, non_blocking=True).repeat(args.supervised_views)
+                    print(slabels)
                     # print(f'slabels.shape: {slabels.shape}')
                     plabels = torch.cat([labels_matrix for _ in range(args.supervised_views)])   
                     simgs = [s.to(device, non_blocking=True) for s in sdata[0]]
