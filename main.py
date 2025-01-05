@@ -214,7 +214,7 @@ def main(args):
                     print('Exception: Empty supervised dataloader')
                 finally:
                     slabels = sdata[1].to(device, non_blocking=True).repeat(args.supervised_views)
-                    print(slabels)
+                    # print(slabels)
                     # print(f'slabels.shape: {slabels.shape}')
                     plabels = torch.cat([labels_matrix for _ in range(args.supervised_views)])   
                     simgs = [s.to(device, non_blocking=True) for s in sdata[0]]
