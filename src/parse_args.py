@@ -55,6 +55,7 @@ def parse_args():
     # NNCSL
     nncsl_group = parser.add_argument_group('NNCSL', 'nncsl setup')
     nncsl_group.add_argument('--label-smoothing', type=float, default=0.1, help='NNCSL label smoothing')
+    nncsl_group.add_argument('--nncsl-mask', action='store_true', help='NNCSL use mask')
     nncsl_group.add_argument('--use-fp16', action='store_true', help='NNCSL use fp16')
     nncsl_group.add_argument('--output-dim', type=int, default=128, help='NNCSL output dimension')
     nncsl_group.add_argument('--w-paws', type=float, default=1.0, help='NNCSL PAWS weight')

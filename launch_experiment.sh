@@ -1,1 +1,1 @@
-python ./main.py --normalize --dataset cifar100 --epochs 250 --valid-ratio 0 --unsup-anticipate-ratio 0
+python ./main.py --normalize --nncsl-mask --dataset cifar100 --epochs 250 --valid-ratio 0 --unsup-anticipate-ratio 0

@@ -20,7 +20,7 @@ from ..evaluate import exec_eval
 
 
 def train_nncsl(args, log_folder, device):
-    mask = False
+    mask = args.nncsl_mask
 
     # transformations
     if 'cifar' in args.dataset or 'tiny' in args.dataset:
