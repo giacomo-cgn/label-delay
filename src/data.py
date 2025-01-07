@@ -1,4 +1,5 @@
 import numpy as np
+from collections import defaultdict
 from sklearn.model_selection import train_test_split
 
 import torch
@@ -296,6 +297,60 @@ class ClassStratifiedSampler(Sampler):
         batches_per_epoch = len(self.classes) // self.classes_per_batch
         return batches_per_epoch * self.epochs
 
+
+class SimpleClassBalancedSampler(Sampler):
+    """
+    A batch sampler that returns class-balanced mini-batches.
+    """
+    def __init__(self, labels, batch_size):
+        """
+        Args:
+            labels (list or array-like): A list or array of labels corresponding to the dataset.
+            batch_size (int): The size of each mini-batch.
+        """
+        self.labels = np.array(labels)
+        self.batch_size = batch_size
+
+        # Group indices by class
+        self.class_indices = defaultdict(list)
+        for idx, label in enumerate(self.labels):
+            self.class_indices[label].append(idx)
+
+        # Shuffle indices within each class
+        for label in self.class_indices:
+            np.random.shuffle(self.class_indices[label])
+
+        self.iter_per_class = {label: iter(indices) for label, indices in self.class_indices.items()}
+
+        # Compute approximate samples per class
+        self.num_classes = len(self.class_indices)
+        self.samples_per_class = max(1, self.batch_size // self.num_classes)
+
+    def __iter__(self):
+        batch = []
+        while True:
+            for label in self.class_indices:
+                # Replenish iterator if exhausted
+                try:
+                    batch.extend([next(self.iter_per_class[label]) for _ in range(self.samples_per_class)])
+                except StopIteration:
+                    # Reshuffle and restart the iterator
+                    np.random.shuffle(self.class_indices[label])
+                    self.iter_per_class[label] = iter(self.class_indices[label])
+                    batch.extend([next(self.iter_per_class[label]) for _ in range(self.samples_per_class)])
+
+            # If the batch exceeds batch_size, truncate it
+            if len(batch) >= self.batch_size:
+                yield batch[:self.batch_size]
+                batch = batch[self.batch_size:]
+
+    def __len__(self):
+        """
+        Returns the number of batches per epoch.
+        """
+        min_class_samples = min(len(indices) for indices in self.class_indices.values())
+        total_samples = sum(len(indices) for indices in self.class_indices.values())
+        return total_samples // self.batch_size
 
 
 

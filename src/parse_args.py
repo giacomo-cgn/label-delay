@@ -29,7 +29,7 @@ def parse_args():
 
     # Training
     training_group = parser.add_argument_group('Training', 'training setup')
-    # training_group.add_argument('--sup-mb-size', type=int, default=128, help='supervised batch size')
+    training_group.add_argument('--sup-mb-size', type=int, default=128, help='supervised batch size')
     training_group.add_argument('--sup-imgs-per-class', type=int, default=3, help='supervised images per class')
     training_group.add_argument('--unsup-mb-size', type=int, default=256, help='unsupervised batch size')
     training_group.add_argument('--num-workers', type=int, default=8, help='number of workers')
