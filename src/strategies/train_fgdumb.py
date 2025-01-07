@@ -76,8 +76,6 @@ def train_fgdumb(args, log_folder, device):
         num_pre_classes = len(pre_classes)
         num_seen_classes = len(seen_classes)
 
-        print(f'len sup_exp: {len(sup_exp)}')
-
         if tr_exp_idx > 0:
             # Update buffer 
             buffer.update(sup_exp)
@@ -127,7 +125,6 @@ def train_fgdumb(args, log_folder, device):
                 with torch.cuda.amp.autocast(enabled=args.use_fp16):
                     optimizer.zero_grad()
     				# Forward pass, l=logits
-                    print('imgs.shape:', imgs.shape)
                     l = encoder(imgs)
 
                     # Compute loss in full precision
