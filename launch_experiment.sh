@@ -1,0 +1,1 @@
+python ./main.py --dataset cifar100 --epochs 50 --valid-ratio 0 --delay 1 --eval-every exp
