@@ -23,7 +23,7 @@ def parse_args():
 
     # Model
     model_group = parser.add_argument_group('Model', 'model setup')
-    model_group.add_argument('--model', type=str, default='nncsl', help='model')
+    model_group.add_argument('--model', type=str, default='hybrid_ssl_semi', help='model')
     model_group.add_argument('--seed' , type=int, default=42, help='seed')
     model_group.add_argument('--encoder', type=str, default='resnet18', help='encoder')
 
@@ -54,7 +54,7 @@ def parse_args():
     optim_group.add_argument('--lr', type=float, default=0.03, help='learning rate')
     optim_group.add_argument('--lr-cls', type=float, default=0.01, help='learning rate for classifier') # 0.12
     optim_group.add_argument('--nesterov' ,action='store_true', help='use nesterov momentum', default=True)
-    optim_group.add_argument('--weight-decay', type=float, default=5e-4, help='weight decay')
+    optim_group.add_argument('--weight-decay', type=float, default=5e-4, help='weight decay') # 0.001 for FixMatch CIFAR100
     optim_group.add_argument('--warmup', type=int, default=0, help='warmup epochs') # 5
 
     # Buffer

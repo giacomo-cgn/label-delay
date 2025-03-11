@@ -1,6 +1,5 @@
 
 from tqdm import tqdm
-import datetime
 import os
 
 import torch
@@ -16,6 +15,7 @@ from .optim import get_optim
 from .evaluate import Evaluator
 
 from .models.hybrid_ssl_semi import HybridSSLSemi
+from .models.fixmatch import FixMatch
 
 
 
@@ -34,16 +34,29 @@ def train(args, log_folder, device):
     
     #  Init model
     encoder = get_encoder(args.encoder, args.dataset)
-    model = HybridSSLSemi(num_classes=benchmark.num_classes,
-                        encoder=encoder,
-                        proj_hidden_dim=args.proj_hidden_dim,
-                        proj_output_dim=args.proj_output_dim,
-                        adapter_hidden_dim=args.adapter_hidden_dim,
-                        lambda_barlow=args.lambda_barlow,
-                        pseudo_label_temp=args.pseudo_label_temp,
-                        pseudo_label_thresh=args.pseudo_label_thresh,
-                        omega_pseudo=args.omega_pseudo,
-                        omega_ssl=args.omega_ssl)
+
+    if args.model == 'hybrid_ssl_semi':
+        model = HybridSSLSemi(num_classes=benchmark.num_classes,
+                            encoder=encoder,
+                            proj_hidden_dim=args.proj_hidden_dim,
+                            proj_output_dim=args.proj_output_dim,
+                            adapter_hidden_dim=args.adapter_hidden_dim,
+                            lambda_barlow=args.lambda_barlow,
+                            pseudo_label_temp=args.pseudo_label_temp,
+                            pseudo_label_thresh=args.pseudo_label_thresh,
+                            omega_pseudo=args.omega_pseudo,
+                            omega_ssl=args.omega_ssl)
+        
+    elif args.model == 'fixmatch':
+        model = FixMatch(num_classes=benchmark.num_classes,
+                         encoder=encoder,
+                         pseudo_label_temp=args.pseudo_label_temp,
+                         pseudo_label_thresh=args.pseudo_label_thresh,
+                         omega_pseudo=args.omega_pseudo)
+    else:
+        raise NotImplementedError(f'Model {args.model} not implemented')
+        
+
     model = model.to(device)
 
     optimizer = get_optim(model, args)
@@ -128,9 +141,10 @@ def train(args, log_folder, device):
         scheduler = get_cosine_schedule_with_warmup(optimizer, args.warmup, exp_steps)
 
         # Train
-        model.train()
 
         for epoch in range(epochs):
+            model.train()
+
             print(f'Doing epoch {epoch}')
             running_loss = 0.0
             running_loss_sup = 0.0
