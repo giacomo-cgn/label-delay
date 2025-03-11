@@ -43,7 +43,7 @@ class FixMatch(nn.Module):
 
         inputs = interleave(
             torch.cat((s_x1, u_curr_x_weak, u_curr_x_strong)), 2*unsup_sup_ratio+1)
-        logits = self.encoder(inputs)
+        logits = self.clf(self.encoder(inputs))
         logits = de_interleave(logits, 2*unsup_sup_ratio+1)
         logits_x = logits[:s_batch_size]
         logits_u_w, logits_u_s = logits[s_batch_size:].chunk(2)
