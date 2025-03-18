@@ -16,6 +16,7 @@ from .evaluate import Evaluator
 
 from .models.hybrid_ssl_semi import HybridSSLSemi
 from .models.fixmatch import FixMatch
+from .models.fixmatch_unsup_buffer import FixMatchUnsupBuffer
 
 
 
@@ -49,6 +50,13 @@ def train(args, log_folder, device):
         
     elif args.model == 'fixmatch':
         model = FixMatch(num_classes=benchmark.num_classes,
+                         encoder=encoder,
+                         pseudo_label_temp=args.pseudo_label_temp,
+                         pseudo_label_thresh=args.pseudo_label_thresh,
+                         omega_pseudo=args.omega_pseudo)
+        
+    elif args.model == 'fixmatch_unsup_buffer':
+        model = FixMatchUnsupBuffer(num_classes=benchmark.num_classes,
                          encoder=encoder,
                          pseudo_label_temp=args.pseudo_label_temp,
                          pseudo_label_thresh=args.pseudo_label_thresh,
