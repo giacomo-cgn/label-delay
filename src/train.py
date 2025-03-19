@@ -136,17 +136,31 @@ def train(args, log_folder, device):
         else:
             unsup_buffer_loader = None
 
-        #  Calculate iterations per epoch (use unsup_curr_loader if available, otherwise use unsup_buffer_loader)
-        if unsup_curr_loader is not None:
-            ipe = ipe = len(unsup_curr_loader) # iterations per epoch
-        else:
-            # Iterating epochs over unsup_buffer_loader
-            assert unsup_buffer_loader is not None, 'Both unsup_curr_loader and unsup_buffer_loader are None'
-            ipe = len(unsup_buffer_loader)
-            unsup_buffer_loader = DataLoader(unsup_buffer_dataset, num_workers=args.num_workers, batch_size=args.unsup_buff_mb_size, shuffle=True, drop_last=True)
+        # TODO: PROVVISORIO, NOT FOR LABEL DELAY
+        if tr_exp_idx == 0:
+            #  Calculate iterations per epoch (use unsup_curr_loader if available, otherwise use unsup_buffer_loader)
+            if unsup_curr_loader is not None:
+                ipe = ipe = len(unsup_curr_loader) # iterations per epoch
+            else:
+                # Iterating epochs over unsup_buffer_loader
+                assert unsup_buffer_loader is not None, 'Both unsup_curr_loader and unsup_buffer_loader are None'
+                ipe = len(unsup_buffer_loader)
+                unsup_buffer_loader = DataLoader(unsup_buffer_dataset, num_workers=args.num_workers, batch_size=args.unsup_buff_mb_size, shuffle=True, drop_last=True)
 
-        exp_steps = args.epochs * ipe
-        scheduler = get_cosine_schedule_with_warmup(optimizer, args.warmup, exp_steps)
+            tot_steps = args.epochs * ipe * args.num_exps
+            scheduler = get_cosine_schedule_with_warmup(optimizer, args.warmup, tot_steps)
+
+        # #  Calculate iterations per epoch (use unsup_curr_loader if available, otherwise use unsup_buffer_loader)
+        # if unsup_curr_loader is not None:
+        #     ipe = ipe = len(unsup_curr_loader) # iterations per epoch
+        # else:
+        #     # Iterating epochs over unsup_buffer_loader
+        #     assert unsup_buffer_loader is not None, 'Both unsup_curr_loader and unsup_buffer_loader are None'
+        #     ipe = len(unsup_buffer_loader)
+        #     unsup_buffer_loader = DataLoader(unsup_buffer_dataset, num_workers=args.num_workers, batch_size=args.unsup_buff_mb_size, shuffle=True, drop_last=True)
+
+        # exp_steps = args.epochs * ipe
+        # scheduler = get_cosine_schedule_with_warmup(optimizer, args.warmup, exp_steps)
 
         # Train
 
